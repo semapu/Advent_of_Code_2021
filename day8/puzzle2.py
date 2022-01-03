@@ -1,5 +1,6 @@
 """
 Description:
+
     Each digit of a seven-segment display is rendered by turning on or off any of seven segments named a through g.
           0:      1:      2:      3:      4:
          aaaa    ....    aaaa    aaaa    ....
@@ -34,10 +35,19 @@ Description:
     render a 4, signal lines e, a, f, and b are on
 
 Goal:
+
     Determine all the digits from all sequences.
 
     Add up all the output values.
 
+Notes:
+    The problems has been solved using common segments between different numbers, starting from those that have
+    a unique number of segments.
+        For instance, to identify a 5, the sequence that defines it must contain all the elements remaining when
+        we "subtract" 4 and 1. Moreover:
+            * 1 and 4 are uniques,
+            * 5 is composed by 5 segments,
+            * the other numbers with 5 segments d not share the remaining ones when 1 is subtracted to 4
 """
 
 import numpy as np
