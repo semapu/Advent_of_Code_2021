@@ -1,2 +1,5 @@
-# Advent_of_Code_2021
-Advent of code 2021 code
+# Advent of Code 2021
+
+Code developed for the advent of code 2021.
+
+URL of the event: https://adventofcode.com/
