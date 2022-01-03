@@ -55,10 +55,15 @@ file = open_file('./input.txt')
 
 if __name__ == '__main__':
 
+    print("TO BE DONE...")
+
     # Close the file
     # file.close()
 
-    # Print the result
+    # ================ #
+    # Print the result #
+    # ================ #
+
     # print("Result: {}".format(result))
     
 
