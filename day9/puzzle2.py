@@ -12,16 +12,36 @@ Description:
         8767896789
         9899965678
 
+    Low points are 2, 1, 6, and 6.
+
+    ============================================================
+
+    Next, you need to find the largest basins so you know what areas are most important to avoid.
+
+    A basin is all locations that eventually flow downward to a single low point.
+    Therefore, every low point has a basin, although some basins are very small.
+    Locations of height 9 do not count as being in any basin, and all other locations will always be part of
+    exactly one basin.
+
+    The size of a basin is the number of locations within the basin, including the low point.
+    The example above has four basins.
+
+    The top-left basin, size 3:
+        2199943210
+        3987894921
+        9856789892
+        8767896789
+        9899965678
+
+    The top-right basin, size 9:
+        2199943210
+        3987894921
+        9856789892
+        8767896789
+        9899965678
+
 Goal:
-    Your first goal is to find the low points - the locations that are lower than any of its adjacent locations.
-    Most locations have four adjacent locations (up, down, left, and right); locations on the edge or corner of the map
-    have three or two adjacent locations, respectively. (Diagonal locations do not count as adjacent.)
-
-    The risk level of a low point is 1 plus its height. In the above example, the risk levels of the low points
-    are 2, 1, 6, and 6. The sum of the risk levels of all low points in the heightmap is therefore 15.
-
-    Find all the low points on your heightmap.
-    What is the sum of the risk levels of all low points on your heightmap?
+    Find the three largest basins and multiply their sizes together. In the above example, this is 9 * 14 * 9 = 1134.
 """
 
 import numpy as np
@@ -77,15 +97,6 @@ mask = np.array([
 
 if __name__ == '__main__':
 
-    # ========================================== #
-    # TODO: Comment when no debugging the code
-    # input_sequences = np.array([[2, 1, 9, 9, 9, 4, 3, 2, 1, 0],
-    #                             [3, 9, 8, 7, 8, 9, 4, 9, 2, 1],
-    #                             [9, 8, 5, 6, 7, 8, 9, 8, 9, 2],
-    #                             [8, 7, 6, 7, 8, 9, 6, 7, 8, 9],
-    #                             [9, 8, 9, 9, 9, 6, 5, 6, 7, 8]])
-    # ========================================== #
-
     # =============================== #
     # Load and process the input file #
     # =============================== #
@@ -105,6 +116,15 @@ if __name__ == '__main__':
 
     # Convert the storage into an array
     input_sequences = np.array(input_sequences)
+
+    # ========================================== #
+    # TODO: Comment when no debugging the code
+    # input_sequences = np.array([[2, 1, 9, 9, 9, 4, 3, 2, 1, 0],
+    #                             [3, 9, 8, 7, 8, 9, 4, 9, 2, 1],
+    #                             [9, 8, 5, 6, 7, 8, 9, 8, 9, 2],
+    #                             [8, 7, 6, 7, 8, 9, 6, 7, 8, 9],
+    #                             [9, 8, 9, 9, 9, 6, 5, 6, 7, 8]])
+    # ========================================== #
 
     # Close the file
     file.close()
@@ -129,7 +149,10 @@ if __name__ == '__main__':
     # ================= #
 
     # Initialize list to store all low point
-    low_points = []
+    basins = []
+
+    # Initialize a set() to store the locations already seen
+    seen = set()
 
     # Iterate from row 1 to row -1, and column 1 and column -1 due to the applied padding
     for row in range(1, input_sequences.shape[0]-1):
@@ -141,16 +164,67 @@ if __name__ == '__main__':
             # Apply the mask
             elements_to_compare = sub_array[mask == 1]
 
-            # Check if center is the smallest
+            # ========================== #
+            # Find the size of the basin #
+            # ========================== #
+
+            # Extract the center of the low point
             center = input_sequences[row, col]
+
+            # Check if the center is a low point
             if all(center < elements_to_compare):
-                low_points.append(center + 1)
+
+                # A new basin has been found
+                size = 0
+
+                # Create a Queue to store the locations that must be checked
+                locations_to_check = []
+                # Add to the queue the centre
+                locations_to_check.append((row, col))
+
+                # Look surrounding location from positions in locations_to_check
+                while locations_to_check:
+                    # Pop a center to be checked
+                    r, c = locations_to_check.pop()
+
+                    # Check if it has been already seen
+                    if (r, c) in seen:
+                        continue
+
+                    # Store the location we are going to check
+                    seen.add((r, c))
+
+                    # Increase the size of the basin
+                    size += 1
+
+                    # Extract the sub-array we want to evaluate
+                    new_sub_array = input_sequences[r - 1:r + 2, c - 1:c + 2]
+
+                    # Check the surroundings of the center,
+                    #  check left
+                    if input_sequences[r, c-1] < 9 and (r, c-1) not in seen:
+                        locations_to_check.append((r, c-1))
+                    #  check right
+                    if (input_sequences[r, c+1] < 9) and (r, c+1) not in seen:
+                        locations_to_check.append((r, c+1))
+                    #  check up
+                    if input_sequences[r-1, c] < 9 and not (r-1, c) in seen:
+                        locations_to_check.append((r-1, c))
+                    #  check down
+                    if input_sequences[r+1, c] < 9 and not (r+1, c) in seen:
+                        locations_to_check.append((r+1, c))
+
+                # Store the size of the basin
+                basins.append(size)
+
+    # Sort all the basins found
+    basins.sort()
 
     # ================ #
     # Print the result #
     # ================ #
 
-    result = np.sum(low_points)
+    result = basins[-1]*basins[-2]*basins[-3]
     print("Result: {}".format(result))
     
 
