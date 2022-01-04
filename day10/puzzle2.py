@@ -1,45 +1,27 @@
 """
 Description:
 
-    The navigation subsystem syntax is made of several lines containing chunks.
-    There are one or more chunks on each line, and chunks contain zero or more other chunks.
-    Adjacent chunks are not separated by any delimiter; if one chunk stops, the next chunk (if any) can immediately start.
-    Every chunk must open and close with one of four legal pairs of matching characters:
+    Now, discard the corrupted lines. The remaining lines are incomplete.
 
-        If a chunk opens with (, it must close with ).
-        If a chunk opens with [, it must close with ].
-        If a chunk opens with {, it must close with }.
-        If a chunk opens with <, it must close with >.
+    Incomplete lines don't have any incorrect characters - instead, they're missing some closing characters at the end
+    of the line. To repair the navigation subsystem, you just need to figure out the sequence of closing characters
+    that complete all open chunks in the line.
 
-    So, () is a legal chunk that contains no other chunks, as is [].
-    More complex but valid chunks include ([]), {()()()}, <([{}])>, [<>({}){}[([])<>]], and even (((((((((()))))))))).
-
-    Examples of corrupted chunks include (], {()()()>, (((()))}, and <([]){()}[{}]).
-    Such a chunk can appear anywhere within a line, and its presence causes the whole line to be considered corrupted.
-
-    To calculate the syntax error score for a line, take the first illegal character on the line and look it up
-    in the following table:
-        ): 3 points.
-        ]: 57 points.
-        }: 1197 points.
-        >: 25137 points.
+    You can only use closing characters (), ], }, or >), and you must add them in the correct order so that only legal
+    pairs are formed and all chunks end up closed.
 
 Goal:
 
-    [({(<(())[]>[[{[]{<()<>>
-    [(()[<>])]({[<{<<[]>>(
-    {([(<{}[<>[]}>{[]{[(<()>
-    (((({<>}<{<{<>}{[]{[]{}
-    [[<[([]))<([[{}[[()]]]
-    [{[{({}]{}}([{[{{{}}([]
-    {<[[]]>}<{[{[{[]{()[[[]
-    [<(<(<(<{}))><([]([]()
-    <{([([[(<>()){}]>(<<{{
-    <{([{{}}[<[[[<>{}]]]>[]]
+    Start with a total score of 0. Then, for each character, multiply the total score by 5 and then increase
+    the total score by the point value given for the character in the following table:
 
-    In the above example, an illegal ) was found twice (2*3 = 6 points), an illegal ] was found once (57 points),
-    an illegal } was found once (1197 points), and an illegal > was found once (25137 points).
-    So, the total syntax error score for this file is 6+57+1197+25137 = 26397 points!
+        ): 1 point.
+        ]: 2 points.
+        }: 3 points.
+        >: 4 points.
+
+    Autocomplete tools are an odd bunch: the winner is found by sorting all of the scores and then taking the
+    middle score. (There will always be an odd number of scores to consider.)
 """
 
 import numpy as np
@@ -96,47 +78,77 @@ opposites = {
 }
 
 scores = {
-    ')': 3,
-    ']': 57,
-    '}': 1197,
-    '>': 25137,
+    ')': 1,
+    ']': 2,
+    '}': 3,
+    '>': 4,
 }
 
 # ==== #
 # Main #
 # ==== #
 
-illegal_characters = []
+scores_incomplete_lines = []
 
 if __name__ == '__main__':
 
     # ========================================== #
     # TODO: Comment when no debugging the code
-    input_sequence = "{([(<{}[<>[]}>{[]{[(<()>\n"  # Expected ], but found } instead
+    # line = "[({(<(())[]>[[{[]{<()<>>\n"  # Complete by adding }}]])})]  # 288957 total points
     # ========================================== #
 
-    # =============================== #
-    # Identify the illegal characters #
-    # =============================== #
-
-    # Initialize a Stack to store the seen chars
-    stack = []
+    # ================================== #
+    # Identify the incomplete characters #
+    # ================================== #
 
     # Read first line
     line = file.readline()
     while line != '\n':
-        for char in line.strip():
-            if char in opening:
-                stack.append(char)
-            else:
-                previous_opening = stack.pop()
-                if char == opposites[previous_opening]:
-                    continue
+        # At the beginning each line is considered as incomplete
+        valid_sequence = True
+
+        # Initialize a Stack to store the seen chars
+        stack = []
+
+        # Analyze each character
+        for char in line:
+
+            # Check if we have analyzed the entire sequence,
+            #  if it is not the end,
+            if char != '\n':
+                # If opening char, store it in the stack
+                if char in opening:
+                    stack.append(char)
+                # If closing char, check if it is valid
                 else:
-                    # Illegal character
-                    illegal_characters.append(char)
-                    # Break the loop
-                    break
+                    previous_opening = stack.pop()
+                    if char == opposites[previous_opening]:
+                        continue
+                    else:
+                        # Illegal sequence
+                        valid_sequence = False
+                        break
+            #  if analyzed the entire sequence.
+            else:
+                # Compute the closing sequence
+                closing_sequence = []
+
+                while stack:
+                    char = stack.pop()
+                    closing_sequence.append(opposites[char])
+
+        # ============================= #
+        # Compute score incomplete line #
+        # ============================= #
+
+        if valid_sequence:
+            # Compute the closing score
+            score = 0
+            for char in closing_sequence:
+                score = 5*score + scores[char]
+
+            # Store the closing score
+            scores_incomplete_lines.append(score)
 
         # Read next line
         line = file.readline()
@@ -144,18 +156,20 @@ if __name__ == '__main__':
     # Close the file
     file.close()
 
-    # ================== #
-    # Total syntax error #
-    # ================== #
-    score = 0
-    for char in illegal_characters:
-        score += scores[char]
+    # ==================== #
+    # Get the middle score #
+    # ==================== #
+    scores_incomplete_lines.sort()
+    idx = int(np.floor(len(scores_incomplete_lines)/2))
+
+    middle_score = scores_incomplete_lines[idx]
+
 
     # ================ #
     # Print the result #
     # ================ #
 
-    print("Result: {}".format(score))
+    print("Result: {}".format(middle_score))
     
 
     
