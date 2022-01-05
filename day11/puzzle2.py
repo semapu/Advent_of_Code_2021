@@ -56,9 +56,20 @@ Description:
         45654
 
 Goal:
-    In the initial example, after 100 steps, there have been a total of 1656 flashes.
+    In the example above, the first time all octopuses flash simultaneously is step 195:
+        After step 195:
+            0000000000
+            0000000000
+            0000000000
+            0000000000
+            0000000000
+            0000000000
+            0000000000
+            0000000000
+            0000000000
+            0000000000
 
-    How many total flashes are there after 100 steps?
+    What is the first step during which all octopuses flash?
 """
 
 import numpy as np
