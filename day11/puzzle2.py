@@ -163,7 +163,13 @@ if __name__ == '__main__':
     # Steps #
     # ===== #
 
-    for step in range(num_steps):
+    # Set a variable to detect when all octopuses flash at the same time
+    all_flashed = False
+
+    # Initialize a counter
+    steps = 0
+
+    while not all_flashed:
 
         # Keep track of the octopuses that have flashed. They only flash ones per step
         octopuses_already_flashed = set()
@@ -209,11 +215,20 @@ if __name__ == '__main__':
                         aux2 = c+ccc
                         octopuses_required_to_flash.append((rrr, ccc))
 
+        # Check if all octopuses flashed at the same time
+        if np.sum(grid[1:-2, 1:-2]) == 0:
+            steps += 1  # Count the last step done
+            all_flashed = True
+            break
+
+        # Increase the number of steps
+        steps += 1
+
     # ================ #
     # Print the result #
     # ================ #
 
-    print("Result: {}".format(num_flashes))
+    print("Result: {}".format(steps))
     
 
     
