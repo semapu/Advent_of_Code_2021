@@ -155,24 +155,30 @@ if __name__ == '__main__':
     # Apply the first fold
     for axis, value in folds:
 
+        # vertical fold
         if axis == "x":
             for y in range(0, max_y+1):
                 for x in range(max_x+1):
                     if x > value:
                         if picture[y][x] == "#":
+                            # compute horizontal distance between the folding line and the dot
                             distance_between_value_and_point = x - value
+                            # the new dot must be at the same distance at the left of the folding line
                             new_x_position = value - distance_between_value_and_point
                             picture[y][new_x_position] = "#"
 
             # Get the new picture
             picture = [row[0:value] for row in picture]
 
+        # horizontal fold
         if axis == "y":
             for x in range(max_x + 1):
                 for y in range(0, max_y + 1):
                     if y > value:
                         if picture[y][x] == "#":
+                            # compute vertical distance between the folding line and the dot
                             distance_between_value_and_point = y - value
+                            # the new dot must be at the same distance at the top of the folding line
                             new_y_position = value - distance_between_value_and_point
                             picture[new_y_position][x] = "#"
 
