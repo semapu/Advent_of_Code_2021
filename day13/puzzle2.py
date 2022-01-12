@@ -1,64 +1,10 @@
 """
 Description:
-    The first section is a list of dots on the transparent paper. 0,0 represents the top-left coordinate.
-    The first value, x, increases to the right. The second value, y, increases downward.
-    So, the coordinate 3,0 is to the right of 0,0, and the coordinate 0,7 is below 0,0.
-        ...#..#..#.
-        ....#......
-        ...........
-        #..........
-        ...#....#.#
-        ...........
-        ...........
-        ...........
-        ...........
-        ...........
-        .#....#.##.
-        ....#......
-        ......#...#
-        #..........
-        #.#........
+    Finish folding the transparent paper according to the instructions. The manual says the code is always eight
+    capital letters.
 
-    Then, there is a list of fold instructions. Each instruction indicates a line on the transparent paper and wants
-    you to fold the paper up (for horizontal y=... lines) or left (for vertical x=... lines). In this example, the
-    first fold instruction is fold along y=7, which designates the line formed by all of the positions
-    where y is 7 (marked here with -):
-
-        ...#..#..#.
-        ....#......
-        ...........
-        #..........
-        ...#....#.#
-        ...........
-        ...........
-        -----------
-        ...........
-        ...........
-        .#....#.##.
-        ....#......
-        ......#...#
-        #..........
-        #.#........
-
-    Because this is a horizontal line, fold the bottom half up. Some of the dots might end up overlapping after the
-    fold is complete, but dots will never appear exactly on a fold line. The result of doing this fold looks like this:
-
-        #.##..#..#.
-        #...#......
-        ......#...#
-        #...#......
-        .#.#..#.###
-        ...........
-        ...........
-
-        Now, only 17 dots are visible.
-
-    Notice that some dots can end up overlapping; in this case, the dots merge together and become a single dot.
 Goal:
-    After the first fold in the example above, 17 dots are visible.
-
-    How many dots are visible after completing just the first fold instruction on your transparent paper?
-
+    What code do you use to activate the infrared thermal imaging camera system?
 """
 
 import numpy as np
@@ -155,36 +101,46 @@ if __name__ == '__main__':
     # Apply the first fold
     for axis, value in folds:
 
+        # vertical fold
         if axis == "x":
             for y in range(0, max_y+1):
                 for x in range(max_x+1):
                     if x > value:
                         if picture[y][x] == "#":
+                            # compute horizontal distance between the folding line and the dot
                             distance_between_value_and_point = x - value
+                            # the new dot must be at the same distance at the left of the folding line
                             new_x_position = value - distance_between_value_and_point
                             picture[y][new_x_position] = "#"
 
             # Get the new picture
             picture = [row[0:value] for row in picture]
+            max_x = value-1
 
+        # horizontal fold
         if axis == "y":
             for x in range(max_x + 1):
                 for y in range(0, max_y + 1):
                     if y > value:
                         if picture[y][x] == "#":
+                            # compute vertical distance between the folding line and the dot
                             distance_between_value_and_point = y - value
+                            # the new dot must be at the same distance at the top of the folding line
                             new_y_position = value - distance_between_value_and_point
                             picture[new_y_position][x] = "#"
 
             # Get the new picture
             picture = picture[0:value]
-
-        # break at the end of the first loop to only apply the first fold
-        break
+            max_y = value-1
 
     # ================ #
     # Print the result #
     # ================ #
-    locations_with_dots = np.where(np.array(picture) == "#")
-
-    print("Result: {}".format(len(locations_with_dots[0])))
+    # Print the final picture because it is easier to see
+    for y in range(0, max_y + 1):
+        for x in range(max_x + 1):
+            if picture[y][x] == "#":
+                print("#", end="")
+            else:
+                print(" ", end="")
+        print()
