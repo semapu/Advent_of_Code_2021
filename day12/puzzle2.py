@@ -1,53 +1,20 @@
 """
 Description:
 
-    The only way to know if you've found the best path is to find all of them.
+    Now, big caves can be visited any number of times, a single small cave can be visited at most twice, and the
+    remaining small caves can be visited at most once. However, the caves named start and end can only be visited
+    exactly once each: once you leave the start cave, you may not return to it, and once you reach the end cave,
+    the path must end immediately.
 
-    Fortunately, the sensors are still mostly working, and so you build a rough map of the remaining caves
-    (your puzzle input). For example:
-        start-A
-        start-b
-        A-c
-        A-b
-        b-d
-        A-end
-        b-end
-
-    This is a list of how all of the caves are connected. You start in the cave named start,
-    and your destination is the cave named end. An entry like b-d means that cave b is connected to cave d -
-    that is, you can move between them.
-
-    So, the above cave system looks roughly like this:
-            start
-            /   \
-        c--A-----b--d
-            \   /
-             end
+    Now, input_simple.txt has 36 possible paths.
 
 Goal:
-    Your goal is to find the number of distinct paths that start at start, end at end, and don't visit small caves
-    more than once. There are two types of caves: big caves (written in uppercase, like A) and small caves
-    (written in lowercase, like b).
-
-    All paths you find should visit small caves at most once, and can visit big caves any number of times.
-
-    Given these rules, there are 10 paths through this example cave system:
-        start,A,b,A,c,A,end
-        start,A,b,A,end
-        start,A,b,end
-        start,A,c,A,b,A,end
-        start,A,c,A,b,end
-        start,A,c,A,end
-        start,A,end
-        start,b,A,c,A,end
-        start,b,A,end
-        start,b,end
+    How many paths through this cave system are there?
 
 """
 
 import numpy as np
 import pandas as pd
-from collections import defaultdict
 
 # ========= #
 # Functions #
@@ -73,7 +40,7 @@ def read_file_as_data_frame(path: str):
 # =================== #
 
 # Open the file conventionally,
-file = open_file('./input_simple.txt')
+file = open_file('./input.txt')
 #  read the entire file,
 # inputs = file.read()
 #  read the next line.
@@ -124,10 +91,23 @@ def deep_first_search(edges, node, visited):
         return [new_visit]
     #  if it is not a terminal node, continue exploration
     for n in edges[node]:
+        # Ensure "start" is only visited one time
         if n != 'start':
-            if n not in visited or n.isupper():
+            # Big caves can be visited many times
+            if n.isupper():
                 temp_result = deep_first_search(edges, n, new_visit)
                 paths.extend(temp_result)
+            # Only one small cave can be visited twice
+            else:
+                # extract all the small cave in the current path
+                small_visited_caves = [i for i in new_visit if i.islower()]
+                # check if any small cave has been visited twice
+                twice = any([True for i in small_visited_caves if small_visited_caves.count(i) > 1])
+                # continue exploration if one small cave visited twice and "n" is the first time, or
+                # continue exploration if no small cave visited twice, and is the second time visiting "n"
+                if (twice and new_visit.count(n) == 0) or (not twice and new_visit.count(n) < 2):
+                    temp_res = deep_first_search(edges, n, new_visit)
+                    paths.extend(temp_res)
     return paths
 # ================= #
 
@@ -176,6 +156,7 @@ if __name__ == '__main__':
 
     print("Result {}: {}".format("deep_first_search", len(paths_graph)))
 
+    aux = 1
 
     
 
