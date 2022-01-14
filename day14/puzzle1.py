@@ -157,9 +157,3 @@ if __name__ == '__main__':
     # ================ #
 
     print("Result: {}".format(counter[most_common_element] - counter[less_common_element]))
-
-    aux = 1
-
-    
-
-
