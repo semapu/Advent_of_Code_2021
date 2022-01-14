@@ -1,7 +1,7 @@
 """
 NOTE:
-    The implementation done is very inefficient. It should be improved.
-    Start by counting the elements each time they are added to the string defining the polymer.
+    The common elements between steps are the pairs. Therefore, this information is what we should keep track of.
+    In the first implementation, we store the polymer string which grows exponentially (BAD IDEA!!!).
 
 Description:
     The submarine manual contains instructions for finding the optimal polymer formula; specifically, it offers a
@@ -93,7 +93,7 @@ file = open_file('./input.txt')
 # Parameters #
 # ========== #
 
-num_steps = 10
+num_steps = 40
 
 # ==== #
 # Main #
@@ -105,8 +105,12 @@ if __name__ == '__main__':
     # Read input data #
     # =============== #
 
-    # The firs line contains the polymer
+    # The first line contains the polymer
     template = file.readline().strip()
+    # Get the pairs from the template
+    pairs = {}
+    for i in range(0, len(template)-1):
+        pairs[template[i:i+2]] = 1
 
     # Store each of the pair instructions rules in a dictionary
     rules = {}
@@ -122,44 +126,65 @@ if __name__ == '__main__':
     # Close the file
     file.close()
 
-    # ========================= #
-    # Compute resulting polymer #
-    # ========================= #
-    polymer = template
+    # ============= #
+    # Final polymer #
+    # ============= #
+    # NOTE: The final polymer (the string) is not requested. No necessary to compute it.
+    #       We only take into account the characters defining this polymer
 
-    for _ in range(num_steps):
-        new_polymer = polymer[0]
-        for i in range(0, len(polymer)-1):
-            # Get the pair
-            pair = polymer[i] + polymer[i+1]
+    for step in range(num_steps):
+        new_pairs = {}
+        char_counter = {}
+
+        # Iterate the found pairs
+        for p, n in pairs.items():
+
             # Get the insertion
-            insertion = rules[pair]
-            # Insert
-            new_polymer += insertion + polymer[i+1]
+            insertion = rules[p]
 
-        polymer = new_polymer
+            # Compute the new pais
+            #  compute first pair
+            if p[0]+insertion in new_pairs:
+                new_pairs[p[0]+insertion] += n
+            else:
+                new_pairs[p[0] + insertion] = n
+
+            #  compute second pair
+            if insertion+p[1] in new_pairs:
+                new_pairs[insertion+p[1]] += n
+            else:
+                new_pairs[insertion+p[1]] = n
+
+            # In the last iteration compute how many times each character appear in the string defining the polymer
+            # NOTE: The last char of a new trio (pair + insertion) is equal to the first char in the following trio.
+            #       However, this is not true for the last character in the polymer. Count it at the end.
+            if step == num_steps-1:
+                # Count the chars
+                #  counting the first chars
+                if p[0] in char_counter:
+                    char_counter[p[0]] += n
+                else:
+                    char_counter[p[0]] = n
+                #  counting the insertion
+                if insertion in char_counter:
+                    char_counter[insertion] += n
+                else:
+                    char_counter[insertion] = n
+
+        pairs = new_pairs
+
+    # Count the last char
+    char_counter[template[-1]] += 1
 
     # ===================================== #
     # Get both most and less common element #
     # ===================================== #
-    counter = {}
-    for char in polymer:
-        if char in counter:
-            counter[char] += 1
-        else:
-            counter[char] = 1
 
-    most_common_element = max(counter, key=counter.get)
-    less_common_element = min(counter, key=counter.get)
+    most_common_element = max(char_counter, key=char_counter.get)
+    less_common_element = min(char_counter, key=char_counter.get)
 
     # ================ #
     # Print the result #
     # ================ #
 
-    print("Result: {}".format(counter[most_common_element] - counter[less_common_element]))
-
-    aux = 1
-
-    
-
-
+    print("Result: {}".format(char_counter[most_common_element] - char_counter[less_common_element]))
