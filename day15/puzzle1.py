@@ -136,13 +136,15 @@ if __name__ == '__main__':
     file.close()
 
     # Set the end node
-    end_node = (len(grid), len(grid[0]))
+    end_node = (len(grid)-1, len(grid[0])-1)  # End node in the bottom right corner
 
-    # Dijkstra's algorithm
+    # ==================== #
+    # Dijkstra's algorithm #
+    # ==================== #
 
     # 1. Mark all nodes unvisited. Create a set of all the unvisited nodes called the unvisited set.
     unvisited_set = {}  # (node): tentative_distance
-    visited_set = {}  # (node): distance
+    visited_set = {}  # (node): smallest distance from starting node
 
     # 2. Assign to every node a tentative distance value: set it to zero for our initial node and to infinity for all
     #    other nodes. The tentative distance of a node v is the length of the shortest path discovered so far between
@@ -158,8 +160,8 @@ if __name__ == '__main__':
     current_node = (0, 0)
 
     # 3. For the current node, consider all of its unvisited neighbors and calculate their tentative distances through
-    # the current node. Compare the newly calculated tentative distance to the current assigned value and assign the
-    # smaller one.
+    #    the current node. Compare the newly calculated tentative distance to the current assigned value and assign the
+    #    smaller one.
     while unvisited_set:
         neighbors = get_neighbors(current_node, unvisited_set)
 
