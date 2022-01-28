@@ -44,6 +44,7 @@ Notes:
 import numpy as np
 import pandas as pd
 import math
+import heapq
 from dijkstra import dijkstra_algorith
 
 # ========= #
@@ -142,11 +143,52 @@ if __name__ == '__main__':
 
     visited_set = dijkstra_algorith(grid, starting_node, end_node)
 
+    # ============ #
+    # A* algorithm #
+    # ============ #
+
+    # TO BE DONE ..
+    # def find_path(map):
+    #
+    #     lines, origin, destination = parse_map(map)
+    #
+    #     tentative = {origin: []}
+    #
+    #     candidates = [(0, origin)]
+    #
+    #     certain = set()
+    #
+    #     while destination not in certain and len(candidates) > 0:
+    #
+    #         _ignored, current = heapq.heappop(candidates)
+    #
+    #         if current in certain:
+    #             continue
+    #
+    #         certain.add(current)
+    #
+    #         neighbors = set(get_neighbors(lines, current)) - certain
+    #
+    #         shorter = get_shorter_paths(tentative, neighbors, current)
+    #
+    #         for neighbor, path in shorter:
+    #             tentative[neighbor] = path
+    #
+    #             heapq.heappush(candidates, (len(path), neighbor))
+    #
+    #     if destination in tentative:
+    #
+    #         return tentative[destination] + [destination]
+    #
+    #     else:
+    #
+    #         raise ValueError("no path")
     # ================ #
     # Print the result #
     # ================ #
 
-    print("Result: {}".format(visited_set[end_node]))
+    aux_final = 1
+    # print("Result: {}".format(visited_set[end_node]))
     
 
     
