@@ -51,7 +51,40 @@ Algorithm:
 
 ## A*
 
-TO BE DONE...
+A* is an informed search algorithm, or a best-first search, meaning that it is formulated in terms of weighted graphs: 
+starting from a specific starting node of a graph, it aims to find a path to the given goal node having the smallest cost
+
+At each iteration of its main loop, A* needs to determine which of its paths to extend. It does so based on the cost of 
+the path and an **estimate** of the **cost required to extend the path all the way to the goal**. Specifically, A* selects the 
+path that minimizes.
+
+    f(n) = g(n) + h(n)
+
+    1. g(n) is the cost of the path from the start node to n,
+    2. h(n) is a heuristic function that estimates the cost of the cheapest path from n to the goal.
+
+Typical implementations of A* use a priority queue to perform the repeated selection of minimum (estimated) cost nodes to expand. 
+
+At each step of the algorithm, the node with the lowest f(x) value is removed from the queue, the f and g values of its
+neighbors are updated accordingly, and these neighbors are added to the queue. The algorithm continues until a removed
+node (thus the node with the lowest f value out of all fringe nodes) is a goal node.
+
+As an example, when searching for the shortest route on a map, h(x) might represent the straight-line distance to the 
+goal, since that is physically the smallest possible distance between any two points. For a grid map from a video game,
+using the Manhattan distance.
+
+    1: Firstly, Place the starting node into OPEN and find its f (n) value.
+
+    2: Then remove the node from OPEN, having the smallest f (n) value. If it is a goal node, then stop and return 
+        to success.
+    
+    3: Else remove the node from OPEN, and find all its successors.
+    
+    4: Find the f (n) value of all the successors, place them into OPEN, and place the removed node into CLOSE.
+    
+    5: Goto Step-2.
+    
+    6: Exit.
 
 ## Reference
 
