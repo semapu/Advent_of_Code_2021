@@ -1,50 +1,27 @@
 """
 Description:
-    Method of packing numeric expressions into a binary sequence. Your submarine's computer has saved the transmission
-    in hexadecimal (your puzzle input).
+    Now that you have the structure of your transmission decoded, you can calculate the value of the expression it
+    represents.
 
-    The first step of decoding the message is to convert the hexadecimal representation into binary. Each character of
-    hexadecimal corresponds to four bits of binary data:
+Literal values (type ID 4) represent a single number as described above. The remaining type IDs are more interesting:
 
-        0 = 0000
-        1 = 0001
-        2 = 0010
-        3 = 0011
-        4 = 0100
-        5 = 0101
-        6 = 0110
-        7 = 0111
-        8 = 1000
-        9 = 1001
-        A = 1010
-        B = 1011
-        C = 1100
-        D = 1101
-        E = 1110
-        F = 1111
+    Packets with type ID 0 are sum packets - their value is the sum of the values of their sub-packets.
+        If they only have a single sub-packet, their value is the value of the sub-packet.
+    Packets with type ID 1 are product packets - their value is the result of multiplying together the values of their
+        sub-packets. If they only have a single sub-packet, their value is the value of the sub-packet.
+    Packets with type ID 2 are minimum packets - their value is the minimum of the values of their sub-packets.
+    Packets with type ID 3 are maximum packets - their value is the maximum of the values of their sub-packets.
+    Packets with type ID 5 are greater than packets - their value is 1 if the value of the first sub-packet is greater
+        than the value of the second sub-packet; otherwise, their value is 0. These packets always have exactly two
+        sub-packets.
+    Packets with type ID 6 are less than packets - their value is 1 if the value of the first sub-packet is less than
+        the value of the second sub-packet; otherwise, their value is 0. These packets always have exactly two sub-packets.
+    Packets with type ID 7 are equal to packets - their value is 1 if the value of the first sub-packet is equal to the
+        value of the second sub-packet; otherwise, their value is 0. These packets always have exactly two sub-packets.
 
-    The hexadecimal representation of this packet might encode a few extra 0 bits at the end; these are not part of the
-    transmission and should be ignored.
-
-    Every packet begins with a standard header: the first three bits encode the packet version, and the next three bits
-    encode the packet type ID. These two values are numbers; all numbers encoded in any packet are represented as
-    binary with the most significant bit first. For example, a version encoded as the binary sequence 100 represents
-    the number 4.
-
-    Packets with type ID 4 represent a literal value. Literal value packets encode a single binary number. To do this,
-    the binary number is padded with leading zeroes until its length is a multiple of four bits, and then it is broken
-    into groups of four bits. Each group is prefixed by a 1 bit except the last group, which is prefixed by a 0 bit.
-    These groups of five bits immediately follow the packet header. For example, the hexadecimal string D2FE28 becomes:
-
-        110100101111111000101000
-        VVVTTTAAAAABBBBBCCCCC
-
-    Every other type of packet (any packet with a type ID other than 4) represent an operator that performs some
-    calculation on one or more sub-packets contained within.
 
 Goal:
-    Decode the structure of your hexadecimal-encoded BITS transmission; what do you get if you add up the version
-    numbers in all packets?
+    What do you get if you evaluate the expression represented by your hexadecimal-encoded BITS transmission?
 
 """
 
@@ -111,9 +88,10 @@ DECODING = {
 
 
 class Packet:
-    def __init__(self, version, type_id, literal_value):
+    def __init__(self, version, type_id, sub_packets, literal_value):
         self.version = version
         self.type_id = type_id
+        self.sub_packets = sub_packets
         self.literal_value = literal_value
 
 
@@ -166,8 +144,6 @@ def _parse_packet(chunk_to_parse: str) -> str:
 idx = 0
 # Initialize the decoded transmission on binary
 transmission_binary = ""
-# Initialize a list to store all the version
-versions = []
 
 
 if __name__ == '__main__':
@@ -200,15 +176,15 @@ if __name__ == '__main__':
     # Process the binary decoded transmission #
     # ======================================= #
 
+    # Recursive function to precess the packets (both main and sub-packets)
     def parse_packet():
-        global versions
+
+        # Initialize a list to keep track of the sub-packets found in each packet
+        sub_packets = []
 
         # Read the packet version and packet type id
         packet_version = _read(3)
         packet_type_id = _read(3)
-
-        # # Store the version. Most outer packet
-        versions.append(int(packet_version, 2))
 
         # Literal packet. It encodes a single binary number
         if int(packet_type_id, 2) == 4:
@@ -217,12 +193,15 @@ if __name__ == '__main__':
             # _parse_packet() start from the first chunk, and if necessary, continues the parsing
             packet_bits = _parse_packet(chunk_to_decode)
 
+            # Get the literal value of the literal packet
             literal_value_packet = int(packet_bits, 2)
 
-            return Packet(int(packet_version, 2), int(packet_type_id, 2), literal_value_packet)
+            # Return literal packet. No sub-packets possible
+            return Packet(int(packet_version, 2), int(packet_type_id, 2), [], literal_value_packet)
 
         # Operator. It encodes one or mode sub-packets
         else:
+            # Read the type of operator packet
             length_type_id = _read(1)
 
             # 15-bit
@@ -236,6 +215,11 @@ if __name__ == '__main__':
                 #  3 bits -> version; 3 bit -> type ID; 5 bits -> First chunk to decode
                 while idx < i:
                     packet = parse_packet()
+                    sub_packets.append(packet)
+
+                # Ones extracted and processed all sub-packet, store them.
+                #  The literal value is zero because sub-packets found. Only literal packets has literal values
+                return Packet(int(packet_version, 2), int(packet_type_id, 2), sub_packets, 0)
 
             # 11-bit
             else:
@@ -245,17 +229,43 @@ if __name__ == '__main__':
                 #  3 bits -> version; 3 bit -> type ID; 5 bits -> First chunk to decode
                 for i in range(int(num_sub_packets, 2)):
                     packet = parse_packet()
+                    sub_packets.append(packet)
+
+                # Ones extracted and processed all sub-packet, store them.
+                #  The literal value is zero because sub-packets found. Only literal packets has literal values
+                return Packet(int(packet_version, 2), int(packet_type_id, 2), sub_packets, 0)
+
+    # Recursive function to get the value of the processed packets
+    def get_value(p):
+
+        if p.type_id == 4:
+            return p.literal_value
+        elif p.type_id == 0:
+            return sum(get_value(sub_packet) for sub_packet in p.sub_packets)
+        elif p.type_id == 1:
+            result = 1
+            for sub_packet in p.sub_packets:
+                result *= get_value(sub_packet)
+            return result
+        elif p.type_id == 2:
+            return min(get_value(sub_packet) for sub_packet in p.sub_packets)
+        elif p.type_id == 3:
+            return max(get_value(sub_packet) for sub_packet in p.sub_packets)
+        elif p.type_id == 5:
+            # These packets always have exactly two sub-packets
+            return int(get_value(p.sub_packets[0]) > get_value(p.sub_packets[1]))
+        elif p.type_id == 6:
+            # These packets always have exactly two sub-packets
+            return int(get_value(p.sub_packets[0]) < get_value(p.sub_packets[1]))
+        elif p.type_id == 7:
+            # These packets always have exactly two sub-packets
+            return int(get_value(p.sub_packets[0]) == get_value(p.sub_packets[1]))
 
     # ================ #
     # Print the result #
     # ================ #
 
-    aux = parse_packet()
-    print("Result: {}".format(np.sum(versions)))
+    packets = parse_packet()
 
-
-
-
-    
-
-
+    result = get_value(packets)
+    print("Final result: {}".format(result))
