@@ -46,6 +46,9 @@ Goal:
     Decode the structure of your hexadecimal-encoded BITS transmission; what do you get if you add up the version
     numbers in all packets?
 
+Notes:
+    1. The code focus on the extraction of the packet's version (both main and sub-packets).
+    2. To see the codification, see puzzle2.py
 """
 
 import numpy as np
@@ -110,13 +113,6 @@ DECODING = {
 }
 
 
-class Packet:
-    def __init__(self, version, type_id, literal_value):
-        self.version = version
-        self.type_id = type_id
-        self.literal_value = literal_value
-
-
 def _read(n: int) -> str:
 
     # To change the value of a global variable inside a function, refer to the variable by using the global keyword
@@ -142,7 +138,7 @@ def _get_if_available_next_chunk_and_bits_current_chunk(bits_to_parse: str):
     return next_chunk_available, bits
 
 
-def _parse_packet(chunk_to_parse: str) -> str:
+def _parse_information(chunk_to_parse: str) -> str:
 
     # Initialize the storage of the bits
     bits_packet = ""
@@ -200,6 +196,7 @@ if __name__ == '__main__':
     # Process the binary decoded transmission #
     # ======================================= #
 
+    # Recursive function to process the input packet
     def parse_packet():
         global versions
 
@@ -212,14 +209,8 @@ if __name__ == '__main__':
 
         # Literal packet. It encodes a single binary number
         if int(packet_type_id, 2) == 4:
-            chunk_to_decode = _read(5)
-
-            # _parse_packet() start from the first chunk, and if necessary, continues the parsing
-            packet_bits = _parse_packet(chunk_to_decode)
-
-            literal_value_packet = int(packet_bits, 2)
-
-            return Packet(int(packet_version, 2), int(packet_type_id, 2), literal_value_packet)
+            # Simulate the reading of the following 5 bits
+            _ = _read(5)
 
         # Operator. It encodes one or mode sub-packets
         else:
@@ -235,7 +226,7 @@ if __name__ == '__main__':
                 # Each sub-packet has the structure of a packet:
                 #  3 bits -> version; 3 bit -> type ID; 5 bits -> First chunk to decode
                 while idx < i:
-                    packet = parse_packet()
+                    parse_packet()
 
             # 11-bit
             else:
@@ -244,13 +235,13 @@ if __name__ == '__main__':
                 # Each sub-packet has the structure of a packet:
                 #  3 bits -> version; 3 bit -> type ID; 5 bits -> First chunk to decode
                 for i in range(int(num_sub_packets, 2)):
-                    packet = parse_packet()
+                    parse_packet()
 
     # ================ #
     # Print the result #
     # ================ #
 
-    aux = parse_packet()
+    parse_packet()
     print("Result: {}".format(np.sum(versions)))
 
 
