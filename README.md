@@ -13,4 +13,6 @@ YouTube channel (additional information):
 
 ## Notes:
 
-    1. Code created using the environment **Dis3**
+    1. Code created using the environment **Dis3**;
+    2. Some of the implementations are sub-optimal. Or there missing the 
+        implementation of possible alternative;
